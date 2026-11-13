@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "مدفوعات المقاولات",
+  "short_name": "مدفوعات",
+  "description": "إدارة مدفوعات أعضاء شركة المقاولات",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0f766e",
+  "lang": "ar",
+  "dir": "rtl",
+   "icons": [
+    {"src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}

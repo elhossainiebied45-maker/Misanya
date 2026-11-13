@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e" id="metaTheme">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="مدفوعات">
+<title>مدفوعات المقاولات</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="./favicon.png">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon.svg">
+<style>
+  :root, [data-theme="light"] {
+    --bg: #f1f5f9; --surface: #ffffff; --surface-2: #f8fafc;
+    --border: #e2e8f0; --text: #0f172a; --text-muted: #64748b;
+    --primary: #0f766e; --primary-light: #14b8a6; --primary-soft: #ccfbf1;
+    --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.1);
+    --shadow-lg: 0 20px 40px rgba(15,23,42,.2);
+    --header-bg: linear-gradient(135deg, #0f766e, #115e59);
+    --header-text: #fff;
+  }
+  [data-theme="dark"] {
+    --bg: #0b1120; --surface: #1e293b; --surface-2: #334155;
+    --border: #334155; --text: #f1f5f9; --text-muted: #94a3b8;
+    --primary: #14b8a6; --primary-light: #2dd4bf; --primary-soft: #134e4a;
+    --success: #34d399; --danger: #f87171; --warning: #fbbf24;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.3);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+    --header-bg: linear-gradient(135deg, #115e59, #0f172a);
+    --header-text: #f1f5f9;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
+    transition: background-color .3s, color .3s;
+  }
+  button, input, select { font-family: inherit; }
+
+  .header {
+    background: var(--header-bg); color: var(--header-text);
+    padding: 16px 20px; display: flex; justify-content: space-between;
+    align-items: center; gap: 12px; position: sticky; top: 0; z-index: 30;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-icon {
+    width: 44px; height: 44px; background: rgba(255,255,255,.18);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,.15);
+  }
+  .brand h1 { margin: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand p { margin: 0; font-size: 12px; opacity: .8; }
+  .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .icon-btn {
+    height: 40px; min-width: 40px; padding: 0 12px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 10px; color: var(--header-text); font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s; font-weight: 600;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,.28); transform: translateY(-1px); }
+  .icon-btn:active { transform: scale(.96); }
+  .icon-btn .label { font-size: 12px; margin-right: 6px; font-weight: 600; }
+  @media (max-width: 480px) { .icon-btn .label { display: none; } }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--surface); padding: 16px; border-radius: 14px;
+    border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s;
+  }
+  .stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stat::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 4px; height: 100%; background: var(--primary);
+  }
+  .stat.paid::before { background: var(--success); }
+  .stat.remaining::before { background: var(--danger); }
+  .stat.count::before { background: var(--warning); }
+  .stat .label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+  .stat .value { font-size: 20px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stat.paid .value { color: var(--success); }
+  .stat.remaining .value { color: var(--danger); }
+  .stat .value-input {
+    width: 100%; background: transparent; border: 1.5px solid transparent;
+    border-radius: 8px; padding: 4px 6px; margin: -4px -6px;
+    font-size: 20px; font-weight: 800; color: var(--primary);
+    font-variant-numeric: tabular-nums; transition: all .15s;
+  }
+  .stat .value-input:hover { border-color: var(--border); }
+  .stat .value-input:focus {
+    outline: none; background: var(--surface-2);
+    border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,118,110,.15);
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card h2 {
+    margin: 0 0 14px; font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .badge-count {
+    background: var(--primary-soft); color: var(--primary);
+    padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  }
+
+  .add-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .add-row input {
+    flex: 1; min-width: 200px; padding: 11px 14px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 14px; background: var(--surface); color: var(--text);
+    transition: all .15s;
+  }
+  .add-row input::placeholder { color: var(--text-muted); }
+  .add-row input:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(15,118,110,.15);
+  }
+  .add-row input.invalid { border-color: var(--danger); }
+
+  .btn {
+    border: none; padding: 10px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s; display: inline-flex;
+    align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-light); box-shadow: 0 4px 12px rgba(15,118,110,.25); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-light { background: var(--surface-2); color: var(--text); }
+  .btn-light:hover { background: var(--border); }
+  .btn-danger { background: #fee2e2; color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+
+  .table-wrap { overflow-x: auto; margin: 0 -6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface-2); padding: 11px 12px; text-align: right;
+    font-weight: 700; color: var(--text-muted); font-size: 11px;
+    text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  .money { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .success { color: var(--success); }
+  .danger { color: var(--danger); }
+
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; color: #fff; flex-shrink: 0;
+  }
+  .member-cell { display: flex; align-items: center; gap: 10px; }
+  .actions { white-space: nowrap; display: flex; gap: 4px; }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 30px 20px; color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 42px; opacity: .6; }
+  .empty-state .title { font-weight: 600; color: var(--text); }
+  .empty-state .desc { font-size: 12px; text-align: center; }
+
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .field input {
+    padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 14px; background: var(--surface);
+    color: var(--text); transition: all .15s; width: 100%;
+  }
+  .field input:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(15,118,110,.15);
+  }
+  .field input:disabled { background: var(--surface-2); color: var(--text-muted); }
+  .field input.invalid { border-color: var(--danger); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.6); backdrop-filter: blur(4px);
+    z-index: 100; align-items: center; justify-content: center;
+    padding: 16px; animation: fadeIn .15s;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--surface); border-radius: 16px; padding: 22px;
+    width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--shadow-lg); animation: slideUp .25s cubic-bezier(.16,1,.3,1);
+  }
+  .modal.wide { max-width: 520px; }
+  @keyframes slideUp {
+    from { transform: translateY(20px) scale(.96); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  .modal h3 { margin: 0 0 18px; font-size: 17px; font-weight: 700; }
+  .modal .field { margin-bottom: 14px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-actions .btn { flex: 1; }
+
+  .pay-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px;
+  }
+  .pay-row:last-child { border-bottom: none; }
+  .pay-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pay-note { font-size: 11px; color: var(--text-muted); }
+  .pay-amount { color: var(--success); font-weight: 700; font-size: 14px; }
+  .pay-total {
+    display: flex; justify-content: space-between; padding: 14px 0 0;
+    margin-top: 10px; border-top: 2px solid var(--border);
+    font-weight: 700; font-size: 14px;
+  }
+
+  .toast {
+    position: fixed; top: 16px; left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    background: var(--text); color: var(--bg);
+    padding: 12px 22px; border-radius: 12px; font-size: 13px;
+    font-weight: 600; z-index: 200; box-shadow: var(--shadow-lg);
+    opacity: 0; transition: all .35s cubic-bezier(.16,1,.3,1);
+    pointer-events: none; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); color: #fff; }
+  .toast.error { background: var(--danger); color: #fff; }
+
+  /* ====== Install instructions ====== */
+  .install-step {
+    display: flex; gap: 12px; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .install-step:last-child { border-bottom: none; }
+  .install-step .num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--primary-soft); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .install-step .text { flex: 1; font-size: 13px; line-height: 1.6; }
+  .install-step .text strong { color: var(--primary); }
+  .install-warning {
+    background: #fef3c7; color: #92400e; padding: 12px;
+    border-radius: 10px; font-size: 12px; margin-bottom: 14px;
+    border-right: 3px solid var(--warning); line-height: 1.6;
+  }
+  [data-theme="dark"] .install-warning { background: #78350f; color: #fde68a; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  @media (max-width: 640px) {
+    .container { padding: 14px 12px 60px; }
+    .header { padding: 12px 14px; }
+    .brand h1 { font-size: 15px; }
+    .brand-icon { width: 38px; height: 38px; font-size: 18px; }
+    .stat { padding: 12px; }
+    .stat .value, .stat .value-input { font-size: 16px; }
+    .card { padding: 14px; }
+    th { padding: 9px 8px; font-size: 10px; }
+    td { padding: 10px 8px; font-size: 12px; }
+    .btn-sm { padding: 5px 9px; font-size: 11px; }
+    .avatar { width: 26px; height: 26px; font-size: 10px; }
+    .settings-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <div class="brand-icon">🏗️</div>
+    <div>
+      <h1 id="groupTitle">شركة المقاولات</h1>
+      <p>إدارة مدفوعات الأعضاء</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="btnTheme" title="الوضع الليلي">🌙</button>
+    <button class="icon-btn" id="btnInstall" title="تثبيت التطبيق" style="background:#fbbf24;border-color:#f59e0b;">
+      <span>📲</span><span class="label">تثبيت</span>
+    </button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat">
+      <div class="label">💰 الإجمالي الكلي</div>
+      <input type="number" id="totalInput" class="value-input" min="0" step="any" value="0">
+    </div>
+    <div class="stat paid">
+      <div class="label">✅ المدفوع</div>
+      <div class="value" id="statPaid">0</div>
+    </div>
+    <div class="stat remaining">
+      <div class="label">⏳ المتبقي</div>
+      <div class="value" id="statRemaining">0</div>
+    </div>
+    <div class="stat count">
+      <div class="label">👥 عدد الأعضاء</div>
+      <div class="value" id="statCount">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>➕ إضافة عضو جديد</h2>
+    <div class="add-row">
+      <input type="text" id="newMemberName" placeholder="اكتب اسم العضو..." maxlength="60" autocomplete="off">
+      <button class="btn btn-primary" id="btnAddMember">إضافة</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👥 الأعضاء <span class="badge-count" id="countBadge">0</span></h2>
+    <div class="table-wrap">
+      <table id="membersTable">
+        <thead>
+          <tr>
+            <th>#</th><th>الاسم</th><th>المستحق</th><th>المدفوع</th><th>المتبقي</th><th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ الإعدادات</h2>
+    <div class="settings-grid">
+      <div class="field">
+        <label>اسم الشركة</label>
+        <input type="text" id="setGroupName" maxlength="60">
+      </div>
+      <div class="field">
+        <label>العملة</label>
+        <input type="text" id="setCurrency" maxlength="10">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btnSaveSettings">💾 حفظ الإعدادات</button>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <h3>➕ إضافة دفعة</h3>
+    <div class="field"><label>العضو</label><input type="text" id="payMemberName" disabled></div>
+    <div class="field"><label>المبلغ</label><input type="number" id="payAmount" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+    <div class="field"><label>ملاحظة (اختياري)</label><input type="text" id="payNote" maxlength="100" placeholder="مثال: دفعة أولى"></div>
+    <div class="modal-actions">
+      <button class="btn btn-light" id="btnCancelPay">إلغاء</button>
+      <button class="btn btn-primary" id="btnSavePay">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payments list modal -->
+<div class="modal-overlay" id="listModal">
+  <div class="modal">
+    <h3 id="listTitle">دفعات العضو</h3>
+    <div id="listBody" style="max-height:340px;overflow-y:auto;"></div>
+    <div class="modal-actions"><button class="btn btn-light" id="btnCloseList">إغلاق</button></div>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:360px">
+    <h3>⚠️ تأكيد</h3>
+    <p id="confirmMsg" style="margin:0;color:var(--text-muted);line-height:1.6;"></p>
+    <div class="modal-actions">
+      <button class="btn btn-light" id="confirmNo">إلغاء</button>
+      <button class="btn btn-danger" id="confirmYes">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<!-- Install instructions modal -->
+<div class="modal-overlay" id="installModal">
+  <div class="modal wide">
+    <h3>📲 تثبيت التطبيق</h3>
+    <div id="installContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-light" id="btnCloseInstall">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  var STORAGE_KEY = 'contractor_app_v4';
+  var THEME_KEY = 'contractor_theme';
+  var state;
+
+  var storageAvailable = true;
+  try {
+    localStorage.setItem('__t__', '1');
+    localStorage.removeItem('__t__');
+  } catch (e) { storageAvailable = false; }
+
+  function saveToStorage(k, v) { if (storageAvailable) { try { localStorage.setItem(k, v); } catch (e) {} } }
+  function readFromStorage(k) { return storageAvailable ? (function() { try { return localStorage.getItem(k); } catch (e) { return null; } })() : null; }
+
+  function defaultState() {
+    return { groupName: 'شركة المقاولات', currency: 'ج.م', total: 0, members: [] };
+  }
+  function loadState() {
+    var raw = readFromStorage(STORAGE_KEY);
+    if (!raw) return defaultState();
+    try {
+      var d = JSON.parse(raw);
+      if (!d || !Array.isArray(d.members)) return defaultState();
+      return {
+        groupName: d.groupName || 'شركة المقاولات',
+        currency: d.currency || 'ج.م',
+        total: Number(d.total) || 0,
+        members: d.members
+      };
+    } catch (e) { return defaultState(); }
+  }
+  function saveState() { saveToStorage(STORAGE_KEY, JSON.stringify(state)); }
+
+  function toNum(v) { var n = Number(v); return isFinite(n) ? n : 0; }
+  function fmtNum(n) { return toNum(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+  function fmt(n) { return fmtNum(n) + ' ' + state.currency; }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function newId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9); }
+  function initials(name) {
+    var p = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return '?';
+    if (p.length === 1) return p[0].slice(0, 2);
+    return (p[0][0] || '') + (p[1][0] || '');
+  }
+  var AVATAR_COLORS = ['#0f766e','#dc2626','#7c3aed','#ea580c','#0891b2','#be185d','#4338ca','#65a30d','#c2410c','#b45309'];
+  function avatarColor(name) {
+    var h = 0;
+    for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  }
+
+  var toastTimer = null;
+  function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || 'success');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  function computeAll() {
+    var n = state.members.length;
+    var totalPaid = 0;
+    state.members.forEach(function(m) {
+      var paid = 0;
+      if (m.payments) m.payments.forEach(function(p) { paid += toNum(p.amount); });
+      m._due = n > 0 ? toNum(state.total) / n : 0;
+      m._paid = paid;
+      m._remaining = m._due - paid;
+      totalPaid += paid;
+    });
+    return { total: toNum(state.total), paid: totalPaid, remaining: toNum(state.total) - totalPaid, count: n };
+  }
+
+  function render() {
+    var c = computeAll();
+    document.getElementById('groupTitle').textContent = state.groupName;
+    document.getElementById('statPaid').textContent = fmt(c.paid);
+    document.getElementById('statRemaining').textContent = fmt(c.remaining);
+    document.getElementById('statCount').textContent = c.count;
+    document.getElementById('countBadge').textContent = c.count;
+
+    var ti = document.getElementById('totalInput');
+    if (document.activeElement !== ti) ti.value = c.total;
+
+    var gn = document.getElementById('setGroupName');
+    var cur = document.getElementById('setCurrency');
+    if (document.activeElement !== gn) gn.value = state.groupName;
+    if (document.activeElement !== cur) cur.value = state.currency;
+
+    renderMembers();
+  }
+
+  function renderMembers() {
+    var tbody = document.querySelector('#membersTable tbody');
+    tbody.innerHTML = '';
+    if (!state.members.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div><div class="title">لا يوجد أعضاء بعد</div><div class="desc">أضف أول عضو من الأعلى للبدء</div></div></td></tr>';
+      return;
+    }
+    state.members.forEach(function(m, i) {
+      var tr = document.createElement('tr');
+      var rc = m._remaining > 0 ? 'danger' : 'success';
+      var pc = (m.payments || []).length;
+      tr.innerHTML =
+        '<td>' + (i + 1) + '</td>' +
+        '<td><div class="member-cell"><div class="avatar" style="background:' + avatarColor(m.name) + '">' + esc(initials(m.name)) + '</div><span>' + esc(m.name) + '</span></div></td>' +
+        '<td class="money">' + fmtNum(m._due) + '</td>' +
+        '<td class="money success">' + fmtNum(m._paid) + '</td>' +
+        '<td class="money ' + rc + '">' + fmtNum(m._remaining) + '</td>' +
+        '<td class="actions">' +
+          '<button class="btn btn-sm btn-success" data-action="add-pay" data-id="' + m.id + '">➕ دفعة</button>' +
+          '<button class="btn btn-sm btn-light" data-action="list-pays" data-id="' + m.id + '">📋 ' + pc + '</button>' +
+          '<button class="btn btn-sm btn-danger" data-action="del-member" data-id="' + m.id + '">حذف</button>' +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addMember() {
+    var input = document.getElementById('newMemberName');
+    var name = (input.value || '').trim();
+    if (name.length < 2) {
+      input.classList.add('invalid'); input.focus();
+      showToast('اكتب اسم صحيح (حرفان على الأقل)', 'error');
+      return;
+    }
+    input.classList.remove('invalid');
+    for (var i = 0; i < state.members.length; i++) {
+      if (state.members[i].name === name) {
+        showToast('الاسم موجود بالفعل', 'error'); input.select(); return;
+      }
+    }
+    state.members.push({ id: newId(), name: name, payments: [] });
+    saveState(); input.value = ''; input.focus(); render();
+    showToast('تمت إضافة ' + name);
+  }
+
+  function findMember(id) {
+    for (var i = 0; i < state.members.length; i++) if (state.members[i].id === id) return state.members[i];
+    return null;
+  }
+
+  function openPaymentModal(id) {
+    var m = findMember(id);
+    if (!m) return;
+    document.getElementById('paymentModal').setAttribute('data-member-id', id);
+    document.getElementById('payMemberName').value = m.name;
+    document.getElementById('payAmount').value = '';
+    document.getElementById('payAmount').classList.remove('invalid');
+    document.getElementById('payNote').value = '';
+    openModal('paymentModal');
+    setTimeout(function() { document.getElementById('payAmount').focus(); }, 100);
+  }
+
+  function savePayment() {
+    var modal = document.getElementById('paymentModal');
+    var m = findMember(modal.getAttribute('data-member-id'));
+    if (!m) return;
+    var inp = document.getElementById('payAmount');
+    var amount = toNum(inp.value);
+    if (amount <= 0) {
+      inp.classList.add('invalid'); inp.focus();
+      showToast('اكتب مبلغ أكبر من صفر', 'error'); return;
+    }
+    inp.classList.remove('invalid');
+    var note = (document.getElementById('payNote').value || '').trim();
+    if (!m.payments) m.payments = [];
+    m.payments.push({ id: newId(), amount: amount, note: note });
+    saveState(); closeModal('paymentModal'); render();
+    showToast('تم حفظ الدفعة بنجاح');
+  }
+
+  function openPaymentsList(id) {
+    var m = findMember(id);
+    if (!m) return;
+    document.getElementById('listTitle').textContent = '📋 دفعات: ' + m.name;
+    var body = document.getElementById('listBody');
+    body.innerHTML = '';
+    var ps = m.payments || [];
+    if (!ps.length) {
+      body.innerHTML = '<div class="empty-state"><div class="icon">💰</div><div class="title">لا توجد دفعات بعد</div></div>';
+    } else {
+      var total = 0;
+      ps.forEach(function(p) {
+        total += toNum(p.amount);
+        var row = document.createElement('div');
+        row.className = 'pay-row';
+        row.innerHTML =
+          '<div class="pay-info"><span class="pay-amount">' + fmtNum(p.amount) + ' ' + esc(state.currency) + '</span>' +
+          (p.note ? '<span class="pay-note">' + esc(p.note) + '</span>' : '') + '</div>' +
+          '<button class="btn btn-sm btn-danger" data-action="del-pay" data-mid="' + m.id + '" data-pid="' + p.id + '">حذف</button>';
+        body.appendChild(row);
+      });
+      var tr = document.createElement('div');
+      tr.className = 'pay-total';
+      tr.innerHTML = '<span>الإجمالي</span><span style="color:var(--success)">' + fmtNum(total) + ' ' + esc(state.currency) + '</span>';
+      body.appendChild(tr);
+    }
+    openModal('listModal');
+  }
+
+  var confirmResolve = null;
+  function confirmAsync(msg) {
+    return new Promise(function(resolve) {
+      document.getElementById('confirmMsg').textContent = msg;
+      confirmResolve = resolve;
+      openModal('confirmModal');
+    });
+  }
+  document.getElementById('confirmYes').addEventListener('click', function() {
+    closeModal('confirmModal');
+    if (confirmResolve) { confirmResolve(true); confirmResolve = null; }
+  });
+  document.getElementById('confirmNo').addEventListener('click', function() {
+    closeModal('confirmModal');
+    if (confirmResolve) { confirmResolve(false); confirmResolve = null; }
+  });
+
+  function deleteMember(id) {
+    var m = findMember(id);
+    if (!m) return;
+    confirmAsync('حذف العضو "' + m.name + '" وكل دفعاته؟').then(function(ok) {
+      if (!ok) return;
+      state.members = state.members.filter(function(x) { return x.id !== id; });
+      saveState(); render(); showToast('تم حذف العضو');
+    });
+  }
+
+  function deletePayment(mid, pid) {
+    var m = findMember(mid);
+    if (!m || !m.payments) return;
+    var idx = -1;
+    for (var i = 0; i < m.payments.length; i++) if (m.payments[i].id === pid) { idx = i; break; }
+    if (idx < 0) return;
+    confirmAsync('حذف هذه الدفعة؟').then(function(ok) {
+      if (!ok) return;
+      m.payments.splice(idx, 1);
+      saveState(); render(); showToast('تم حذف الدفعة');
+      if (document.getElementById('listModal').classList.contains('open')) openPaymentsList(mid);
+    });
+  }
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (!document.querySelector('.modal-overlay.open')) document.body.style.overflow = '';
+  }
+
+  /* ===== Theme ===== */
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    var btn = document.getElementById('btnTheme');
+    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.setAttribute('title', theme === 'dark' ? 'الوضع النهاري' : 'الوضع الليلي');
+    var meta = document.getElementById('metaTheme');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1120' : '#0f766e');
+  }
+  function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'light';
+    var next = cur === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    saveToStorage(THEME_KEY, next);
+  }
+  function initTheme() {
+    var saved = readFromStorage(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') { applyTheme(saved); return; }
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+
+  /* ===== PWA ===== */
+  var ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14b8a6"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs><rect width="512" height="512" fill="url(#g)" rx="112"/><path d="M160 380V200l96-64 96 64v180" stroke="white" stroke-width="26" fill="none" stroke-linejoin="round"/><circle cx="256" cy="288" r="44" fill="white"/><path d="M236 288l16 16 28-32" stroke="#0f766e" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_192 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ICON_SVG);
+
+
+
+  function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    if (window.location.protocol === 'file:') return;
+    navigator.serviceWorker.register('./sw.js').catch(function(error) {
+      console.warn('تعذر تسجيل Service Worker:', error);
+    });
+  }
+
+  var deferredPrompt = null;
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function isFileProtocol() { return window.location.protocol === 'file:'; }
+  function isHTTPS() { return window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'; }
+
+  function setupInstall() {
+    var installBtn = document.getElementById('btnInstall');
+
+    if (isStandalone()) {
+      installBtn.style.background = 'rgba(255,255,255,.15)';
+      installBtn.style.borderColor = 'rgba(255,255,255,.2)';
+      installBtn.innerHTML = '<span>✅</span><span class="label">مثبت</span>';
+      installBtn.title = 'التطبيق مثبت';
+      installBtn.addEventListener('click', function() {
+        showToast('التطبيق مثبت بالفعل على جهازك ✅');
+      });
+      return;
+    }
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.background = '#16a34a';
+      installBtn.style.borderColor = '#15803d';
+      installBtn.innerHTML = '<span>📲</span><span class="label">تثبيت</span>';
+      installBtn.title = 'اضغط للتثبيت';
+    });
+
+    window.addEventListener('appinstalled', function() {
+      deferredPrompt = null;
+      installBtn.style.background = 'rgba(255,255,255,.15)';
+      installBtn.style.borderColor = 'rgba(255,255,255,.2)';
+      installBtn.innerHTML = '<span>✅</span><span class="label">مثبت</span>';
+      showToast('تم تثبيت التطبيق بنجاح 🎉');
+    });
+
+    installBtn.addEventListener('click', function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(choice) {
+          if (choice.outcome === 'accepted') showToast('جاري التثبيت...');
+          deferredPrompt = null;
+        });
+        return;
+      }
+      showInstallInstructions();
+    });
+  }
+
+  function showInstallInstructions() {
+    var ua = navigator.userAgent;
+    var isIOS = /iPhone|iPad|iPod/.test(ua);
+    var isAndroid = /Android/.test(ua);
+    var isChrome = /Chrome|CriOS/.test(ua);
+    var isSafari = /Safari/.test(ua) && !/Chrome|CriOS/.test(ua);
+    var content = document.getElementById('installContent');
+
+    var html = '';
+
+    if (isFileProtocol()) {
+      html += '<div class="install-warning">⚠️ <strong>أنت تشغّل الملف مباشرة من جهازك.</strong><br>' +
+              'التثبيت كتطبيق يحتاج رابط <strong>HTTPS</strong>. لازم ترفع الملف على استضافة مجانية أولًا — التعليمات تحت.</div>';
+    } else if (!isHTTPS()) {
+      html += '<div class="install-warning">⚠️ التثبيت يحتاج رابط <strong>HTTPS</strong>. ارفع الملف على استضافة مجانية.</div>';
+    }
+
+    html += '<div style="background:var(--surface-2);padding:14px;border-radius:10px;margin-bottom:16px;">' +
+            '<div style="font-weight:700;margin-bottom:8px;">🚀 ارفع الملف على Netlify Drop (دقيقتين):</div>' +
+            '</div>';
+
+    html += '<div class="install-step"><div class="num">1</div><div class="text">' +
+            'غيّر اسم الملف إلى <strong>index.html</strong> (مهم جدًا)</div></div>';
+    html += '<div class="install-step"><div class="num">2</div><div class="text">' +
+            'افتح <strong>app.netlify.com/drop</strong> في المتصفح</div></div>';
+    html += '<div class="install-step"><div class="num">3</div><div class="text">' +
+            'اسحب الملف على الصفحة وانتظر شوية</div></div>';
+    html += '<div class="install-step"><div class="num">4</div><div class="text">' +
+            'هيديك رابط زي <strong>https://xxxx.netlify.app</strong></div></div>';
+    html += '<div class="install-step"><div class="num">5</div><div class="text">' +
+            'افتح الرابط من <strong>موبايلك</strong></div></div>';
+
+    html += '<div style="margin-top:20px;padding-top:16px;border-top:2px solid var(--border);">' +
+            '<div style="font-weight:700;margin-bottom:12px;">📱 خطوات التثبيت من الموبايل:</div>';
+
+    if (isIOS) {
+      html += '<div class="install-step"><div class="num">A</div><div class="text">' +
+              'افتح الرابط في <strong>Safari</strong> (مهم — مش Chrome)</div></div>';
+      html += '<div class="install-step"><div class="num">B</div><div class="text">' +
+              'اضغط زر <strong>المشاركة ⬆️</strong> في الأسفل</div></div>';
+      html += '<div class="install-step"><div class="num">C</div><div class="text">' +
+              'اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong></div></div>';
+    } else if (isAndroid || isChrome) {
+      html += '<div class="install-step"><div class="num">A</div><div class="text">' +
+              'افتح الرابط في <strong>Chrome</strong></div></div>';
+      html += '<div class="install-step"><div class="num">B</div><div class="text">' +
+              'هيظهرلك زر <strong>"تثبيت"</strong> تلقائي في الأعلى أو أسفل الشاشة</div></div>';
+      html += '<div class="install-step"><div class="num">C</div><div class="text">' +
+              'أو افتح قائمة المتصفح <strong>⋮</strong> واختر <strong>"تثبيت التطبيق"</strong></div></div>';
+    } else {
+      html += '<div class="install-step"><div class="num">A</div><div class="text">' +
+              'افتح الرابط في Chrome أو Edge</div></div>';
+      html += '<div class="install-step"><div class="num">B</div><div class="text">' +
+              'ابحث عن أيقونة التثبيت ⊕ في شريط العنوان</div></div>';
+    }
+
+    html += '</div>';
+    content.innerHTML = html;
+    openModal('installModal');
+  }
+
+  document.getElementById('btnCloseInstall').addEventListener('click', function() {
+    closeModal('installModal');
+  });
+
+  function saveSettings() {
+    var gn = (document.getElementById('setGroupName').value || '').trim() || 'شركة المقاولات';
+    var cur = (document.getElementById('setCurrency').value || '').trim() || 'ج.م';
+    state.groupName = gn; state.currency = cur;
+    saveState(); render(); showToast('تم حفظ الإعدادات');
+  }
+  function onTotalChange() {
+    var v = toNum(document.getElementById('totalInput').value);
+    if (v < 0) v = 0;
+    state.total = v;
+    saveState(); render();
+  }
+
+  function bindEvents() {
+    document.getElementById('btnAddMember').addEventListener('click', addMember);
+    document.getElementById('newMemberName').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); addMember(); }
+    });
+    var ti = document.getElementById('totalInput');
+    ti.addEventListener('change', onTotalChange);
+    ti.addEventListener('blur', onTotalChange);
+
+    document.getElementById('btnSavePay').addEventListener('click', savePayment);
+    document.getElementById('payAmount').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); savePayment(); }
+    });
+    document.getElementById('btnCancelPay').addEventListener('click', function() { closeModal('paymentModal'); });
+    document.getElementById('btnCloseList').addEventListener('click', function() { closeModal('listModal'); });
+    document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
+    document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+
+    document.querySelectorAll('.modal-overlay').forEach(function(o) {
+      o.addEventListener('click', function(e) { if (e.target === o) closeModal(o.id); });
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(function(m) { closeModal(m.id); });
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var a = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id');
+      if (a === 'add-pay') openPaymentModal(id);
+      else if (a === 'del-member') deleteMember(id);
+      else if (a === 'list-pays') openPaymentsList(id);
+      else if (a === 'del-pay') deletePayment(btn.getAttribute('data-mid'), btn.getAttribute('data-pid'));
+    });
+  }
+
+  function init() {
+    initTheme();
+    registerServiceWorker();
+    state = loadState();
+    bindEvents();
+    render();
+    setupInstall();
+    if (!storageAvailable) showToast('تحذير: المتصفح لا يسمح بالحفظ — البيانات مش هتتحفظ', 'error');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
